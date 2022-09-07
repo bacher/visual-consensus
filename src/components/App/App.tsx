@@ -42,14 +42,22 @@ export function App() {
     console.log('App Init');
 
     network.init();
-    for (const node of nodes) {
-      node.init();
-    }
+
+    const initTimeouts = nodes.map((node) =>
+      window.setTimeout(() => {
+        node.init();
+      }, (0.2 + Math.random() * 0.8) * 2000),
+    );
 
     return () => {
       console.log('App Destroy');
 
       network.destroy();
+
+      for (const initTimeout of initTimeouts) {
+        window.clearTimeout(initTimeout);
+      }
+
       for (const node of nodes) {
         node.destroy();
       }

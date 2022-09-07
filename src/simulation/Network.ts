@@ -7,7 +7,10 @@ export type NetworkMessageCallback = (info: {
 }) => void;
 
 export class Network {
-  private communicationMatrix = new Map<string, NetworkMessageCallback>();
+  private readonly communicationMatrix = new Map<
+    string,
+    NetworkMessageCallback
+  >();
   private networkOptions: NetworkOptions;
 
   public constructor({ networkOptions }: { networkOptions: NetworkOptions }) {
@@ -18,12 +21,25 @@ export class Network {
     this.networkOptions = networkOptions;
   }
 
-  public sendMessage(info: {
+  public sendMessage({
+    from,
+    to,
+    message,
+  }: {
     from: string;
-    destination: string;
+    to: string;
     message: string;
   }): void {
-    console.log('send', info);
+    const isLost = Math.random() < this.networkOptions.lossRate;
+
+    if (isLost) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      const toListener = this.communicationMatrix.get(to);
+      toListener?.({ from, to, message });
+    }, this.networkOptions.avgLatency * (0.7 + Math.random() * 0.6));
   }
 
   public addNewMessagesListener(

@@ -32,7 +32,7 @@ export function OptionsPanel({ options, onChange }: Props) {
         </label>
         <label>
           <span className={styles.labelText}>Loss rate (%):</span>{' '}
-          <input readOnly value={options.lossRate * 100} /> 0{' '}
+          <input readOnly value={(options.lossRate * 100).toFixed(0)} /> 0{' '}
           <input
             type="range"
             min={0}

@@ -17,12 +17,12 @@ export function NetworkInterfaceLog({ networkInterface }: Props) {
       <h3>Network log:</h3>
       <ul className={styles.list}>
         {logEntries.map((entry) => (
-          <li key={entry.ts.getTime()} className={styles.item}>
+          <li key={entry.packetIndex} className={styles.item}>
             <span>{entry.ts.toJSON()}</span>{' '}
             {entry.type === 'incoming' ? (
-              <span>{`${entry.from} ==>`}</span>
+              <span>{`receive from ${entry.from}:`}</span>
             ) : (
-              <span>{`==> ${entry.to}:`}</span>
+              <span>{`sending to ${entry.to}:`}</span>
             )}
             <pre className={styles.message}>{entry.message}</pre>
           </li>
