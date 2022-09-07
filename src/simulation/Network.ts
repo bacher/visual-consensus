@@ -1,4 +1,4 @@
-import { NetworkOptions } from '../common/types';
+import type { NetworkOptions } from '../common/types';
 
 export type NetworkMessageCallback = (info: {
   from: string;
@@ -31,5 +31,13 @@ export class Network {
     callback: NetworkMessageCallback,
   ): void {
     this.communicationMatrix.set(nodeName, callback);
+  }
+
+  public init() {
+    // noop
+  }
+
+  public destroy() {
+    // noop
   }
 }

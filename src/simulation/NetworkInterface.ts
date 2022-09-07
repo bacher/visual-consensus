@@ -1,18 +1,46 @@
-import { Network } from './Network';
+import type { Network } from './Network';
+import { Observable } from './Observable';
 
 export type MessageCallback = (from: string, message: string) => void;
 
-export class NetworkInterface {
-  private network: Network;
-  private nodeName: string;
+export type NetworkLogEntry = {
+  ts: Date;
+} & (
+  | {
+      type: 'incoming';
+      from: string;
+      message: string;
+    }
+  | {
+      type: 'outgoing';
+      to: string;
+      message: string;
+    }
+);
+
+export class NetworkInterface extends Observable {
+  private readonly network: Network;
+  private readonly nodeName: string;
+  private readonly log: NetworkLogEntry[] = [];
   private newMessagesCallback?: MessageCallback;
 
   constructor(network: Network, nodeName: string) {
+    super();
+
     this.network = network;
     this.nodeName = nodeName;
 
     this.network.addNewMessagesListener(this.nodeName, ({ from, message }) => {
+      this.log.push({
+        ts: new Date(),
+        type: 'incoming',
+        from,
+        message,
+      });
+
       this.newMessagesCallback?.(from, message);
+
+      this.emitChange();
     });
   }
 
@@ -22,9 +50,22 @@ export class NetworkInterface {
       destination,
       message,
     });
+
+    this.log.push({
+      ts: new Date(),
+      type: 'outgoing',
+      to: destination,
+      message,
+    });
+
+    this.emitChange();
   }
 
   public setNewMessagesListener(callback: MessageCallback): void {
     this.newMessagesCallback = callback;
+  }
+
+  public getLog(): NetworkLogEntry[] {
+    return this.log;
   }
 }

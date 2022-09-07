@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import times from 'lodash/times';
 
-import { Options } from '../Options';
+import { OptionsPanel } from '../OptionsPanel';
 import { ConsensusNodeVisualization } from '../ConsensusNodeVisualization';
 import { Network } from '../../simulation/Network';
 import { NetworkInterface } from '../../simulation/NetworkInterface';
 import { ConsensusNode } from '../../simulation/ConsensusNode';
-import type { NetworkOptions } from '../../common/types';
+import type { NetworkOptions, StaticConfig } from '../../common/types';
 
 import styles from './App.module.scss';
 
@@ -18,18 +18,41 @@ export function App() {
     lossRate: 0.1,
   });
 
+  const staticConfig = useMemo<StaticConfig>(
+    () => ({
+      nodesNames: times(NODES_COUNT, (index) => `node_${index}`),
+    }),
+    [],
+  );
+
   const { network, nodes } = useMemo(() => {
     const network = new Network({ networkOptions });
-    const nodes = times(NODES_COUNT, (index) => `node_${index}`).map(
-      (nodeName) => {
-        const networkInterface = new NetworkInterface(network, nodeName);
-        return new ConsensusNode({ nodeName, networkInterface });
-      },
-    );
+    const nodes = staticConfig.nodesNames.map((nodeName) => {
+      const networkInterface = new NetworkInterface(network, nodeName);
+      return new ConsensusNode({ nodeName, networkInterface, staticConfig });
+    });
 
     return {
       network,
       nodes,
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('App Init');
+
+    network.init();
+    for (const node of nodes) {
+      node.init();
+    }
+
+    return () => {
+      console.log('App Destroy');
+
+      network.destroy();
+      for (const node of nodes) {
+        node.destroy();
+      }
     };
   }, []);
 
@@ -40,13 +63,10 @@ export function App() {
 
   return (
     <div className={styles.root}>
-      <Options options={networkOptions} onChange={setNetworkOptions} />
+      <OptionsPanel options={networkOptions} onChange={setNetworkOptions} />
       <div className={styles.nodesPanel}>
         {nodes.map((node) => (
-          <ConsensusNodeVisualization
-            key={node.nodeName}
-            nodeName={node.nodeName}
-          />
+          <ConsensusNodeVisualization key={node.nodeName} node={node} />
         ))}
       </div>
     </div>
