@@ -2,11 +2,16 @@ import type { NetworkInterface } from './NetworkInterface';
 import { Observable } from './Observable';
 import { StaticConfig } from '../common/types';
 
+enum ConsensusNodeState {
+  STARTING = 'STARTING',
+}
+
 export class ConsensusNode extends Observable {
   public readonly nodeName: string;
 
   public readonly networkInterface: NetworkInterface;
   private readonly staticConfig: StaticConfig;
+  private state: string;
   private intervalId: number | undefined;
 
   constructor({
@@ -23,10 +28,16 @@ export class ConsensusNode extends Observable {
     this.staticConfig = staticConfig;
     this.nodeName = nodeName;
     this.networkInterface = networkInterface;
+    this.state = ConsensusNodeState.STARTING;
   }
 
   public getState(): string {
-    return 'Nothing';
+    return this.state;
+  }
+
+  private setState(updatedState: string): void {
+    this.state = updatedState;
+    this.emitChange();
   }
 
   public init() {
